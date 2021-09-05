@@ -31,27 +31,37 @@ class _HomePageState extends State<HomePage>
   };
 
   DartObject object;
+  int pageNo = 1;
 
   @override
   void initState() {
     super.initState();
 
-    this.fetchData();
+    this.fetchData("wallpaper", 20);
     this.controller = TabController(length: 2, vsync: this);
+  }
+
+  incPage() {
+    ++pageNo;
   }
 
   String url(String query, int pageNo, int perPage) {
     return "https://api.pexels.com/v1/search?query=${query.trim()}&per_page=$perPage&page=$pageNo";
   }
 
-  fetchData() async {
-    var data =
-        await http.get(Uri.parse(url("popular", 1, 25)), headers: headers);
+  Future<void> fetchData(final String query, final int perPage) async {
+    var data = await http.get(Uri.parse(url(query, pageNo, perPage)),
+        headers: headers);
+
+    incPage();
+
     var decodedJson = jsonDecode(data.body);
 
     object = DartObject.fromJson(decodedJson);
 
     setState(() {});
+
+    return null;
   }
 
   @override
@@ -75,8 +85,8 @@ class _HomePageState extends State<HomePage>
         body: (object == null)
             ? (Center(child: CircularProgressIndicator()))
             : (TabBarView(controller: controller, children: <Widget>[
-                WallpapersPage(object),
-                SearchPage(object)
+                WallpapersPage(object, fetchData),
+                SearchPage()
               ])));
   }
 }
